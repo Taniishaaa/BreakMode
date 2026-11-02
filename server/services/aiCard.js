@@ -49,7 +49,7 @@ JSON SHAPE
 
 export function extractJson(text) {
   const a = text.indexOf("{"), b = text.lastIndexOf("}");
-  if (a < 0 || b < 0) throw new Error("No JSON in response");
+  if (a < 0 || b < 0) throw new Error(`No JSON in response. The model said: "${text.slice(0, 160).replace(/\s+/g, " ")}"`);
   return JSON.parse(text.slice(a, b + 1));
 }
 
@@ -62,9 +62,12 @@ async function callAnthropic({ system, user }) {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   client ??= new Anthropic({ maxRetries: 0 });
   const res = await client.messages.create(
-    { model: MODEL(), max_tokens: 900, system, messages: [{ role: "user", content: user }] },
-    { timeout: 12000 });
-  return res.content.find((b) => b.type === "text")?.text ?? "";
+    { model: MODEL(), max_tokens: 2000, system, messages: [{ role: "user", content: user }] },
+    { timeout: 20000 });
+  const text = res.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+  if (!text.trim()) throw new Error(`The model sent no text (stop_reason=${res.stop_reason}, blocks=${res.content.map((b) => b.type).join(",") || "none"})`);
+  if (res.stop_reason === "max_tokens") throw new Error("The model's answer was cut off (max_tokens)");
+  return text;
 }
 
 /**
@@ -90,9 +93,11 @@ export async function generateCard(ctx, lang, { callModel = callAnthropic } = {}
       if (ctx.review) assertNoSpoiler(parsed); // a leaked verdict is the worst failure, so it is checked first
       assertSpecific(parsed, ctx); // a number in "why", a named player and a threshold in "watch"
       // the if-stays / if-changes lines come from the authored table, never from the model
+      console.log(`AI card ok (${ctx.stoppage?.type}, ${lang}) in ${Date.now() - t0} ms`);
       return done({ card: applyReviewText(parsed, ctx), source: "llm", attempts: attempt + 1 });
     } catch (err) {
       lastError = String(err.message).slice(0, 300);
+      console.warn(`AI attempt ${attempt + 1} failed after ${Date.now() - t0} ms (${ctx.stoppage?.type}, ${lang}): ${lastError}`);
     }
   }
   return done({ card: fallbackCard(ctx, lang), source: "fallback", error: lastError });

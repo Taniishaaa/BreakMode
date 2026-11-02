@@ -20,6 +20,7 @@
     "convert": "node scripts/convert.js",
     "db:seed": "node server/db/seed.js",
     "warm": "node scripts/warm.js",
-    "evals": "node evals/run.js"
+    "evals": "node evals/run.js",
+    "check:ai": "node scripts/check-ai.js"
   }
 }
