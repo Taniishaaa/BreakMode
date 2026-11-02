@@ -1,0 +1,25 @@
+{
+  "name": "breakmode",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "workspaces": [
+    "engine",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w client",
+    "start": "node server/index.js",
+    "sample": "node scripts/make-sample.js",
+    "convert": "node scripts/convert.js",
+    "db:seed": "node server/db/seed.js",
+    "warm": "node scripts/warm.js",
+    "evals": "node evals/run.js"
+  }
+}

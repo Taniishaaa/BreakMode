@@ -1,0 +1,5 @@
+{
+  "wicketSec": 45, "reviewSec": 120, "timeoutSec": 150, "adBreakSec": 75, "inningsBreakSec": 900,
+  "timeoutsAfterOver": [7, 13],
+  "adBreakAfterOvers": [4, 10, 16]
+}
